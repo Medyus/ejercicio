@@ -1,26 +1,22 @@
-import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { Observable, catchError, filter, from, map, mergeMap, of, toArray, forkJoin } from 'rxjs';
-import { IPost } from '../interfaces/IPosts';
-import { IUser } from '../interfaces/IUser';
+import { from, map, forkJoin } from 'rxjs';
 import axios from 'axios';
 
 @Injectable()
 export class UserPostService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor() {}
 
-  async getUserAndPost() {
-    const users$ = await axios.get('https://jsonplaceholder.typicode.com/users');
-    const observableUser = from(users$);
+  getUserAndPost() {
+    const users$ = from(axios.get('https://jsonplaceholder.typicode.com/users')).pipe(map((response) => response.data));
 
-    const posts$ = await axios.get('https://jsonplaceholder.typicode.com/posts');
+    const posts$ = from(axios.get('https://jsonplaceholder.typicode.com/posts')).pipe(map((response) => response.data));
 
-    return forkJoin({ users: users$, posts: posts$ }).pipe(
-      map(({ users, posts }) => {
-        return {
-          users: users,
-          posts: posts,
-        };
+    return forkJoin([users$, posts$]).pipe(
+      map(([users, posts]) => {
+        return users.map((user) => ({
+          users,
+          posts: posts.filter((post) => post.userId === user.id),
+        }));
       })
     );
   }

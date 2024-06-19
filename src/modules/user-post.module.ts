@@ -7,5 +7,6 @@ import { UserPostService } from './user-post.service';
   imports: [HttpModule],
   controllers: [UserPostController],
   providers: [UserPostService],
+  exports: [UserPostService],
 })
 export class UserPostModule {}
